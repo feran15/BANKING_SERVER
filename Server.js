@@ -1,14 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const UserRoutes = require('./routes/UserRoutes'); // your routes here
-const cors = require('cors')
+const cors = require('cors');
+const UserRoutes = require('./routes/UserRoutes');
+
 dotenv.config();
 
 const app = express();
 
-// Built-in middleware (not custom)
-app.use(express.json()); // Body parser
+// ✅ CORS middleware must come BEFORE routes
+app.use(cors({
+  origin: process.env.FONTEND_ORIGIN, // your frontend's origin
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+// Middleware
+app.use(express.json());
 
 // Routes
 app.use('/api/User', UserRoutes);
@@ -17,13 +26,6 @@ app.use('/api/User', UserRoutes);
 app.get('/', (req, res) => {
   res.send('Banking API is live 🚀');
 });
-// Explicitly allows frontEnd
- app.use(cors({
-    origin: 'http://localhost:5173', // Explicitly allow frontend
-    credentials: true,
-    methods: 'GET,POST,PUT,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type,Authorization'[[[[[[[[]]]]]]]],
-  }));
 
 // Connect to DB
 mongoose.connect(process.env.MONGO_URI)
@@ -31,5 +33,5 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
