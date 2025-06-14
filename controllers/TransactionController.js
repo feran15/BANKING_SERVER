@@ -1,0 +1,34 @@
+const mongoose = require('mongoose')
+const AppEroor = require('../utils/AppError')
+const Transaction = require('../model/Transaction')
+// Get all transactions
+const  getAllTransactions = async (req, res, next) => {
+    try{
+        const allTransactions = await Transaction.find();
+        res.status(200).json({
+            status:"Success",
+            message:"All Transactions fetched successfully",
+            result:allTransactions.length,
+            data: allTransactions
+        })
+    } catch (error) {
+        next(error)
+    }
+}
+// Make new transfer
+const newTransfer = async (req, res, next) => {
+    try{
+        console.log('Incoming request:', req.body);
+        const {accountNumber, amount, timestamp} = req.body
+        if(!accountNumber || !amount) {
+            throw new AppError("Pls fill in the adequate fields", 400)
+        }
+        res.status(200).json({
+            status:"success",
+            message:"Transaction Successful",
+            data:newTransfer
+        })
+    } catch(error) {
+        next(error)
+    }
+}
