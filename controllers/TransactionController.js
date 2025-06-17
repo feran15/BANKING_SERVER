@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
-const AppEroor = require('../utils/AppError')
+const AppError = require('../utils/AppError')
 const Transaction = require('../model/Transaction')
+const bcrypt = require('bcrypt.js')
 // Get all transactions
 const  getAllTransactions = async (req, res, next) => {
     try{
@@ -20,7 +21,7 @@ const newTransfer = async (req, res, next) => {
     try{
         console.log('Incoming request:', req.body);
         const {accountNumber, amount, timestamp} = req.body
-        if(!accountNumber || !amount) {
+        if(!accountNumber || !amount || !Pin) {
             throw new AppError("Pls fill in the adequate fields", 400)
         }
         res.status(200).json({
