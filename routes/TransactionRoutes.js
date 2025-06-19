@@ -1,1 +1,3 @@
-const express = require('expre')
+const express = require('express')
+const router = express.router()
+const bcrypt = require('bcryptjs')
