@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
  const cors = require('cors');
  const UserRoutes = require('./routes/UserRoutes');
-
+ const TransferRoutes = require('./routes/TransferRoutes')
 dotenv.config();
 
 const app = express();
@@ -22,7 +22,7 @@ app.use(express.json());
 
 // Routes
  app.use('/api/User', UserRoutes);
-
+app.use('/api/Send', TransferRoutes)
 // // Default route
  app.get('/', (req, res) => {
    res.send('Banking API is live 🚀');
