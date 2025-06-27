@@ -24,7 +24,7 @@ app.use(express.json());
 // Routes
  app.use('/api/User', UserRoutes);
 app.use('/api/Send', TransferRoutes)
-app.use('/api/transaction', TransactionRoutes)
+app.use('/api/transactions', TransactionRoutes)
 // // Default route
  app.get('/', (req, res) => {
    res.send('Banking API is live 🚀');
