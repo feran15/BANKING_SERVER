@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
  const cors = require('cors');
  const UserRoutes = require('./routes/UserRoutes');
  const TransferRoutes = require('./routes/TransferRoutes')
+ const TransactionRoutes = require('./routes/TransactionRoutes')
 dotenv.config();
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(express.json());
 // Routes
  app.use('/api/User', UserRoutes);
 app.use('/api/Send', TransferRoutes)
+app.use('/api/transaction', TransactionRoutes)
 // // Default route
  app.get('/', (req, res) => {
    res.send('Banking API is live 🚀');

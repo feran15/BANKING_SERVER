@@ -1,9 +1,8 @@
 // routes/transfer.js
-
-import express from "express";
-import User from "../models/User.js";
-import Transaction from "../models/Transaction.js";
-import { verifyToken } from "../middleware/auth.js";
+const express = require ("express");
+const User = require ("../models/User.js");
+const Transaction = require ("../models/Transaction.js");
+const { verifyToken } = require ("../middleware/auth.js");
 
 const router = express.Router();
 
