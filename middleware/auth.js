@@ -1,7 +1,7 @@
-// middleware/auth.js
-import jwt from "jsonwebtoken";
+// middleware/auth.js 
+const jwt = require ("jsonwebtoken");
 
-export function verifyToken(req, res, next) {
+ function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {

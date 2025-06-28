@@ -1,15 +1,14 @@
 // routes/transfer.js
 const express = require ("express");
-const User = require ("../models/User.js");
-const Transaction = require ("../models/Transaction.js");
+const User = require ("../model/Usermodel.js");
+const Transaction = require ("../model/Transaction.js");
 const { verifyToken } = require ("../middleware/auth.js");
 
 const router = express.Router();
+router.post("/Send",  async (req, res) => {
+  const { amount, toEmail, pin, description } = req.body;
 
-router.post("/Send", verifyToken, async (req, res) => {
-  const { amount, toEmail, description } = req.body;
-
-  if (!amount || !toEmail) {
+  if (!amount || !toEmail || !pin) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
@@ -45,4 +44,4 @@ router.post("/Send", verifyToken, async (req, res) => {
   res.json({ message: "Transfer successful" });
 });
 
-export default router;
+module.exports = router;

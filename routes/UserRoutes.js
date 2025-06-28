@@ -37,17 +37,20 @@ router.post('/register', async (req, res, next) => {
       message: "User registered successfully",
       user: userWithoutPassword
     });
+    // Logs Token
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+     expiresIn: '1d',
+  });
+  res.status(200).json({token, user:{ id: user._id, email: user.email } })
   } catch (error) {
     next(error);
   }
 });
 
-// Login
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validate input
     if (!email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -62,10 +65,19 @@ router.post('/login', async (req, res) => {
       expiresIn: '1d',
     });
 
-    res.status(200).json({ token, user: { id: user._id, email: user.email } });
+    // ✅ Send full user data needed by frontend
+    res.status(200).json({ 
+      token, 
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }
+    });
   } catch (err) {
-    console.error("Login Error:", err); // <-- THIS WILL LOG THE REAL ERROR
+    console.error("Login Error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-module.exports = router;
+
