@@ -19,5 +19,18 @@ const getAllBankAccount = async (req, res, next) => {
 
 // Create a new Account
     const newAccount =  async (req, res) => {
-        
+        const {fullName, email, Password, bvn,} = req.body
+        if(!fullName || !email || !Password || !bvn) {
+        throw new AppError("Please fill in neccessary fields", 400)
+        };
+
+        // Hash the user bvn
+        const hashedbvn = await bcrypt.hash(bvn, 10)
+
+        const newAccount = await Account.create ({
+            fullName,
+            email,
+            Password,
+            bvn:hashedbvn
+        })
     }

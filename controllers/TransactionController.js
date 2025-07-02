@@ -20,7 +20,7 @@ const  getAllTransactions = async (req, res, next) => {
 const newTransfer = async (req, res, next) => {
     try{
         console.log('Incoming request:', req.body);
-        const {accountNumber, amount, timestamp} = req.body
+        const {accountNumber, amount, Pin} = req.body
         if(!accountNumber || !amount || !Pin) {
             throw new AppError("Pls fill in the adequate fields", 400)
         };
