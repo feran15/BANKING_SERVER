@@ -43,3 +43,8 @@ const newTransfer = async (req, res, next) => {
         next(error)
     };
 };
+
+module.exports = {
+    getAllTransactions,
+    newTransfer
+};
