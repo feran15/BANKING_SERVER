@@ -14,8 +14,8 @@ const  getAllTransactions = async (req, res, next) => {
         })
     } catch (error) {
         next(error)
-    }
-}
+    };
+};
 // Make new transfer
 const newTransfer = async (req, res, next) => {
     try{
@@ -23,13 +23,23 @@ const newTransfer = async (req, res, next) => {
         const {accountNumber, amount, timestamp} = req.body
         if(!accountNumber || !amount || !Pin) {
             throw new AppError("Pls fill in the adequate fields", 400)
-        }
+        };
+
+        // Hash the client's pin
+        const hashedPin = await bcrypt.hash(Pin, 10)
+
+        const newTransfer = await Transaction.create({
+            accountNumber,
+            amount,
+            Pin:hashedPin
+        });
         res.status(200).json({
             status:"success",
             message:"Transaction Successful",
             data:newTransfer
-        })
+
+        });
     } catch(error) {
         next(error)
-    }
-}
+    };
+};
