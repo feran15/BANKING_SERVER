@@ -18,7 +18,8 @@ const getAllBankAccount = async (req, res, next) => {
 }
 
 // Create a new Account
-    const newAccount =  async (req, res) => {
+    const newAccount =  async (req, res, next) => {
+        try{
         const {fullName, email, Password, bvn,} = req.body
         if(!fullName || !email || !Password || !bvn) {
         throw new AppError("Please fill in neccessary fields", 400)
@@ -32,5 +33,18 @@ const getAllBankAccount = async (req, res, next) => {
             email,
             Password,
             bvn:hashedbvn
+        });
+        res.status(200).json({
+            status:"Sucess",
+            message:"Bank Account created Successfully",
+            data:newAccount
         })
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    module.exports = {
+        getAllBankAccount,
+        newAccount
     }
