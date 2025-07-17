@@ -50,12 +50,17 @@ const createNewUser = async (req, res, next) => {
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+      // Auto Generate Account Number
+      const generateAccountNumber = () => {
+  return Math.floor(1000000000 + Math.random() * 9000000000); // 10-digit number
+};
 
     const newUser = await User.create({
       firstName,
       lastName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      accountNumber: generateAccountNumber()
     });
 
     res.status(201).json({
