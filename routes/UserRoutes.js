@@ -4,16 +4,17 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../model/Usermodel');
 const AppError = require('../utils/AppError');
+const sendMail = require('../utils/mailer'); // ✅ Email utility
 
-// Register
+// REGISTER
 router.post('/register', async (req, res, next) => {
   try {
     const { firstName, lastName, email, password } = req.body;
 
-    // Check if user exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: 'User already exists' });
     }
 
     // Hash password
@@ -25,28 +26,36 @@ router.post('/register', async (req, res, next) => {
       firstName,
       lastName,
       email,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     const savedUser = await newUser.save();
 
-    // Exclude password from response
-    const { password: pwd, ...userWithoutPassword } = savedUser._doc;
+    // Send welcome email
+    await sendMail(
+      email,
+      'Welcome to MyBank',
+      `<h2>Hi ${firstName},</h2><p>Your account has been created successfully!</p>`
+    );
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: userWithoutPassword
+    // Create JWT
+    const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: '1d',
     });
-    // Logs Token
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-     expiresIn: '1d',
-  });
-  res.status(200).json({token, user:{ id: user._id, email: user.email } })
+
+    // Respond with token and user (excluding password)
+    const { password: pwd, ...userWithoutPassword } = savedUser._doc;
+    res.status(201).json({
+      message: 'User registered successfully',
+      token,
+      user: userWithoutPassword,
+    });
   } catch (error) {
     next(error);
   }
 });
 
+// LOGIN
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -65,19 +74,19 @@ router.post('/login', async (req, res) => {
       expiresIn: '1d',
     });
 
-    // ✅ Send full user data needed by frontend
-    res.status(200).json({ 
-      token, 
+    res.status(200).json({
+      token,
       user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
   } catch (err) {
-    console.error("Login Error:", err);
+    console.error('Login Error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-module.exports = router
+
+module.exports = router;
