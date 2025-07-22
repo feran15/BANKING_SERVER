@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
  const UserRoutes = require('./routes/UserRoutes');
  const TransferRoutes = require('./routes/TransferRoutes')
  const TransactionRoutes = require('./routes/TransactionRoutes')
+ const TransactionPinRoutes = require('./routes/TransactionPinRoutes')
 dotenv.config();
 
 const app = express();
@@ -25,7 +26,7 @@ app.use(express.json());
  app.use('/api/User', UserRoutes);
 app.use('/api/Transfer', TransferRoutes)
 app.use('/api/transactions', TransactionRoutes)
-// // Default route
+app.use('/api/Pin', TransactionPinRoutes) // Default route
  app.get('/', (req, res) => {
    res.send('Banking API is live 🚀');
  });
