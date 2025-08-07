@@ -2,7 +2,7 @@ const express = require("express");
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const AppError = require('../utils/AppError');
-
+const newTransactionPin = require('../controllers/TransactionPinController')
 // Register a new Transaction Pin
 router.post('/Pin', async (req, res, next) => {
     try{
