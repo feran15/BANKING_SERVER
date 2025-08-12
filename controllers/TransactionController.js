@@ -1,8 +1,8 @@
-const Account = require("../models/Account");
-const Transaction = require("../models/Transaction");
+const Account = require("../model/Account");
+const Transaction = require("../model/Transaction");
 const bcrypt = require("bcryptjs");
 
-exports.transferFunds = async (req, res) => {
+const transferFunds = async (req, res) => {
   const { toAccountNumber, amount, pin } = req.body;
   const userId = req.user.id;
 
@@ -41,3 +41,5 @@ exports.transferFunds = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
+module.exports = transferFunds;
