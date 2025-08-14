@@ -24,7 +24,7 @@ app.use(express.json());
 
 // Routes
  app.use('/api/User', UserRoutes);
-app.use('/api/send', TransferRoutes)
+app.use('/api/transfer', TransferRoutes)
 app.use('/api/transaction', TransactionRoutes)
 app.use('/api/Pin', TransactionPinRoutes) // Default route
  app.get('/', (req, res) => {
