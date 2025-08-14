@@ -42,4 +42,4 @@ const transferFunds = async (req, res) => {
   }
 };
 
-module.exports = transferFunds;
+module.exports = { transferFunds };

@@ -2,12 +2,12 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../model/Usermodel.js");
 const Transaction = require("../model/Transaction.js");
-const { verifyToken } = require("../middleware/auth.js");
+const  verifyToken  = require("../middleware/auth.js");
 
 const router = express.Router();
 
 // Apply verifyToken middleware so req.user is available
-router.post("/send", verifyToken, async (req, res) => {
+router.post("/Send", verifyToken, async (req, res) => {
   try {
     const { amount, toEmail, pin, description } = req.body;
 
