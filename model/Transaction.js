@@ -1,37 +1,17 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
 
-const TransactionSchema = new mongoose.Schema({
+const transactionSchema = new mongoose.Schema({
+  from: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, 
+  to: { type: mongoose.Schema.Types.ObjectId, ref: "User" },   
   transactionId: {
     type: String,
-    unique: true,
-    required: true
+    default: () => uuidv4(),
   },
-  from: {
-    type: String,
-    required: true
-  },
-  to: {
-    type: String,
-    required: true
-  },
-  amount: {
-    type: Number,
-    required: true
-  },
-  type: {
-    type: String,
-    enum: ['transfer', 'deposit', 'withdrawal'],
-    required: true
-  },
-  status: {
-    type: String,
-    enum: ['pending', 'success', 'failed'],
-    default: 'success'
-  },
-  description: {
-    type: String
-  }
-}, { timestamps: true });
+  type: { type: String },
+  amount: { type: Number },
+  description: { type: String },
+  date: { type: Date, default: Date.now }
+});
 
-module.exports = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
-
+module.exports = mongoose.model("Transaction", transactionSchema);
