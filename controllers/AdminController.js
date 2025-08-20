@@ -40,3 +40,7 @@ const loginAdmin = async (req, res, next) => {
         throw new AppError("Login Error", 500)
     }
 }
+module.exports = {
+    registerAdmin,
+    loginAdmin
+}
