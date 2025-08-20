@@ -18,7 +18,6 @@ router.post("/newbank", async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedbvn = await bcrypt.hash(bvn, salt)
     const hashedpassword = await bcrypt.hash(password, salt)
-
     // create a new bank account
     const newAccount = new Account ({
         fullname,
@@ -27,3 +26,4 @@ router.post("/newbank", async (req, res, next) => {
         password:hashedpassword
     })
 })
+module.exports = router;
