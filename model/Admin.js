@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const { applyTimestamps } = require('./TransactionPin')
+
 
 const adminSchema = new mongoose.Schema({
     username:{
@@ -21,4 +21,7 @@ const adminSchema = new mongoose.Schema({
         enum:["Superadmin","Staff"], 
         default:"Staff"
     }
-},{timestamps:"true"})
+},
+{timestamps:true}
+)
+module.exports = mongoose.model("Admin", adminSchema)

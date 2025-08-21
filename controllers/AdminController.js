@@ -1,5 +1,5 @@
 // controllers/adminController.js
-const Admin = require("../models/Admin");
+const Admin = require("../model/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/mailer"); // optional
