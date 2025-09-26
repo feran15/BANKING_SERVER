@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const validator = require('validator');
-const User = require('../models/UserModel');
+const User = require('../model/UserModel');
 const AppError = require('../utils/AppError');
 
 // Rate limiting configurations
