@@ -13,6 +13,8 @@ const validatePaymentVerification = (req, res, next) => {
       message: "Payment reference is required"
     });
   }
+  // Get all Transaction
+  
   
   // Basic reference format validation (Paystack references are typically alphanumeric)
   if (!/^[a-zA-Z0-9_-]+$/.test(reference)) {
