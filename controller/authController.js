@@ -52,6 +52,7 @@ class AuthController {
         email,
         password: hashedPassword,
         accountNumber,
+        status:"active",
         isEmailVerified: false,
         createdAt: new Date(),
       });

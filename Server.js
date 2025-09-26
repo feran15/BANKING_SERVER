@@ -16,6 +16,7 @@ const allowedOrigins = ["http://localhost:5173"]; // add production domain(s) la
 
 app.use(cors({
   origin: allowedOrigins,
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
