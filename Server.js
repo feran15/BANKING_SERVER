@@ -27,8 +27,8 @@ const { default: mongoose } = require("mongoose");
 // Mount routes
 app.use("/ai/insights", AIInsightsRoutes);
 app.use("/api/User", UserRoutes)
-app.use("/api/Dashboard", DashboardRoutes)
-app.use("/api/Transaction", TransactionRoutes)
+app.use("/api/dashboard", DashboardRoutes)
+app.use("/api/transactions", TransactionRoutes)
 // Root endpoint
 app.get("/", (req, res) => {
   res.send("🚀 Banking API is running...");

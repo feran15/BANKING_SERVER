@@ -26,7 +26,9 @@ const validatePaymentVerification = (req, res, next) => {
   
   next();
 };
-
+router.get("/payment", async(req, res)=>{
+   res.json({ success: true, message: "Payment route working" });
+})
 // Verify payment route
 router.post("/payment/verify", validatePaymentVerification, async (req, res) => {
   const { reference } = req.body;
