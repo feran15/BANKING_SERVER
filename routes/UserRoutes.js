@@ -11,7 +11,7 @@ const {
 const AuthController = require('../controller/authController');
 
 // Public routes
-router.post('/register', authLimiter, validateRegistration, AuthController.register);
+router.post('/register', validateRegistration, AuthController.register);
 router.post('/login', loginLimiter, validateLogin, AuthController.login);
 
 // Protected routes

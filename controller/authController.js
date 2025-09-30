@@ -52,9 +52,9 @@ class AuthController {
         email,
         password: hashedPassword,
         accountNumber,
-        status:"active",
         isEmailVerified: false,
         createdAt: new Date(),
+        generatedAccountNumber: accountNumber,
       });
 
       const savedUser = await newUser.save();
@@ -139,7 +139,7 @@ class AuthController {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          accountNumber: user.accountNumber,
+          generatedAccountNumber: user.accountNumber,
           isEmailVerified: user.isEmailVerified,
           lastLogin: new Date()
         }
