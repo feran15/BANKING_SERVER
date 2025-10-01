@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const UserRoutes = require("./routes/UserRoutes");
 const DashboardRoutes = require("./routes/Dashboard")
 const TransactionRoutes = require("./routes/TransactionRoutes")
+const PaymentRoutes = require("./routes/PaymentRoutes")
 require("dotenv").config();
 
 
@@ -29,6 +30,7 @@ app.use("/ai/insights", AIInsightsRoutes);
 app.use("/api/User", UserRoutes)
 app.use("/api/dashboard", DashboardRoutes)
 app.use("/api/transactions", TransactionRoutes)
+app.use("/api/payments", PaymentRoutes)
 // Root endpoint
 app.get("/", (req, res) => {
   res.send("🚀 Banking API is running...");
