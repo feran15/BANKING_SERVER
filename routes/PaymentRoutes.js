@@ -1,5 +1,5 @@
 const express = require("express");
-const { initializePayment, verifyPayment } = require("./services/paystackService");
+const { initializePayment, verifyPayment } = require("../Services/PaystackService");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
 const router = express.Router();
