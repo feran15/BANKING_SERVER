@@ -1,5 +1,5 @@
 // controllers/authController.js
-// const User = require('../model/UserModel');
+ const User = require('../model/UserModel');
 const AuthService = require('../Services/authService');
 const AppError = require('../utils/AppError');
 
