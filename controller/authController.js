@@ -1,31 +1,38 @@
 // controllers/authController.js
- const User = require('../model/UserModel');
-const AuthService = require('../Services/authService');
+const User = require('../model/UserModel');
+const authService = require('../Services/authService');
 const AppError = require('../utils/AppError');
 
 class AuthController {
+  /**
+   * Get the current logged-in user
+   */
   static async getCurrentUser(req, res) {
     try {
-      const user = await User.findById(req.user.id).select("-password");
+      const user = await User.findById(req.user.id).select('-password');
       if (!user) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           success: false,
-          message: "User not found" 
+          message: 'User not found',
         });
       }
-      
+
       res.json({
         success: true,
-        user: AuthService.sanitizeUser(user)
+        user: authService.sanitizeUser(user),
       });
     } catch (error) {
-      res.status(500).json({ 
+      console.error('Get current user error:', error);
+      res.status(500).json({
         success: false,
-        message: "Server error" 
+        message: 'Server error',
       });
     }
   }
 
+  /**
+   * Register a new user
+   */
   static async register(req, res) {
     try {
       const { firstName, lastName, email, password } = req.sanitizedBody;
@@ -33,19 +40,17 @@ class AuthController {
       // Check if user exists
       const existingUser = await User.findOne({ email });
       if (existingUser) {
-        return res.status(409).json({ 
+        return res.status(409).json({
           success: false,
-          message: 'User with this email already exists' 
+          message: 'User with this email already exists',
         });
       }
 
-      // Generate unique account number
-      const accountNumber = await AuthService.generateUniqueAccountNumber();
+      // Generate unique account number and hash password
+      const accountNumber = await authService.generateUniqueAccountNumber();
+      const hashedPassword = await authService.hashPassword(password);
 
-      // Hash password
-      const hashedPassword = await AuthService.hashPassword(password);
-
-      // Create user
+      // Create new user
       const newUser = new User({
         firstName,
         lastName,
@@ -60,47 +65,51 @@ class AuthController {
       const savedUser = await newUser.save();
 
       // Send welcome email (non-blocking)
-      AuthService.sendWelcomeEmail(email, firstName, accountNumber);
+      authService.sendWelcomeEmail(email, firstName, accountNumber);
 
       // Generate token
-      const token = AuthService.generateToken(savedUser);
+      const token = authService.generateToken(savedUser);
 
       res.status(201).json({
         success: true,
         message: 'User registered successfully',
         token,
-        user: AuthService.sanitizeUser(savedUser)
+        user: authService.sanitizeUser(savedUser),
       });
-
     } catch (error) {
       console.error('Registration error:', error);
-      
+
       if (error.code === 11000) {
         return res.status(409).json({
           success: false,
-          message: 'User with this email already exists'
+          message: 'User with this email already exists',
         });
       }
-      
+
       res.status(500).json({
         success: false,
         message: 'Registration failed',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === 'development'
+            ? error.message
+            : undefined,
       });
     }
   }
 
+  /**
+   * Log a user in
+   */
   static async login(req, res) {
     try {
       const { email, password } = req.sanitizedBody;
 
-      // Find user with password
+      // Find user and include password
       const user = await User.findOne({ email }).select('+password');
-      
       if (!user) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: 'Invalid email or password' 
+          message: 'Invalid email or password',
         });
       }
 
@@ -108,27 +117,27 @@ class AuthController {
       if (user.status === 'inactive' || user.status === 'suspended') {
         return res.status(403).json({
           success: false,
-          message: 'Account is inactive. Please contact support.'
+          message: 'Account is inactive. Please contact support.',
         });
       }
 
       // Verify password
-      const isMatch = await AuthService.comparePasswords(password, user.password);
+      const isMatch = await authService.comparePasswords(password, user.password);
       if (!isMatch) {
-        return res.status(401).json({ 
+        return res.status(401).json({
           success: false,
-          message: 'Invalid email or password' 
+          message: 'Invalid email or password',
         });
       }
 
-      // Update last login
-      await User.findByIdAndUpdate(user._id, { 
+      // Update login info
+      await User.findByIdAndUpdate(user._id, {
         lastLogin: new Date(),
-        $inc: { loginCount: 1 }
+        $inc: { loginCount: 1 },
       });
 
       // Generate token
-      const token = AuthService.generateToken(user);
+      const token = authService.generateToken(user);
 
       res.json({
         success: true,
@@ -141,16 +150,18 @@ class AuthController {
           email: user.email,
           generatedAccountNumber: user.accountNumber,
           isEmailVerified: user.isEmailVerified,
-          lastLogin: new Date()
-        }
+          lastLogin: new Date(),
+        },
       });
-
     } catch (error) {
       console.error('Login error:', error);
       res.status(500).json({
         success: false,
         message: 'Login failed',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error:
+          process.env.NODE_ENV === 'development'
+            ? error.message
+            : undefined,
       });
     }
   }

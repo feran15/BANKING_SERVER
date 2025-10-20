@@ -1,7 +1,7 @@
 // services/authService.js
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../model/UserModel');
+const User = require('../model/Usermodel');
 const sendMail = require('../utils/mailer');
 
 class AuthService {
