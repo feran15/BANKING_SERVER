@@ -3,11 +3,12 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 
-const UserRoutes = require("./routes/UserRoutes");
-const DashboardRoutes = require("./routes/Dashboard");
-const TransactionRoutes = require("./routes/TransactionRoutes");
-const PaymentRoutes = require("./routes/PaymentRoutes");
-const AIInsightsRoutes = require("./routes/InsightRoutes");
+const UserRoutes = require("./routes/UserRoutes.js");
+const DashboardRoutes = require("./routes/Dashboard.js");
+const TransactionRoutes = require("./routes/TransactionRoutes.js");
+const PaymentRoutes = require("./routes/PaymentRoutes.js");
+const AIInsightsRoutes = require("./routes/InsightRoutes.js");
+
 
 dotenv.config();
 
