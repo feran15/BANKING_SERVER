@@ -17,36 +17,37 @@ const app = express();
 // ✅ Middleware
 app.use(express.json());
 
-// ✅ Allowed Origins
+// ✅ Define allowed origins
 const allowedOrigins = [
-  "http://localhost:5173",            // ✅ local dev
-  "https://bankingserver-production.up.railway.app", // ✅ backend itself
-  "https://your-frontend-domain.com", // ✅ (add your Vercel/Netlify link later)
+  "http://localhost:5173",                 // your dev frontend
+  "https://bankingserver-production.up.railway.app", // backend itself
+  "https://your-frontend-domain.com",      // add deployed frontend later
 ];
 
+// ✅ Dynamic origin handler
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (e.g. Postman, server-to-server)
+    origin: (origin, callback) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.warn("❌ CORS blocked request from:", origin);
+        console.warn("❌ CORS blocked origin:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   })
 );
 
-// ✅ Handle preflight requests globally
+// ✅ Handle preflight requests (OPTIONS)
 app.options("*", cors());
 
-
-// ✅ Handle Preflight Requests
-app.options("*", cors());
+// ✅ Test route to confirm CORS working
+app.get("/test-cors", (req, res) => {
+  res.json({ message: "CORS headers working ✅" });
+});
 
 // ✅ MongoDB Connection
 mongoose
