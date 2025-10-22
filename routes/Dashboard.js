@@ -4,7 +4,7 @@ const User = require("../model/Usermodel"); // adjust path if needed
 const jwt = require("jsonwebtoken");
 
 // Dashboard endpoint
-router.get("/body", authenticate, async (req, res) => {
+router.get("/body",  async (req, res) => {
   try {
     // Find the current user in MongoDB
     const user = await User.findById(req.user.id).select("-password");

@@ -1,51 +1,68 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const UserRoutes = require("./routes/UserRoutes");
-const DashboardRoutes = require("./routes/Dashboard")
-const TransactionRoutes = require("./routes/TransactionRoutes")
-const PaymentRoutes = require("./routes/PaymentRoutes")
-require("dotenv").config();
+const mongoose = require("mongoose");
 
+const UserRoutes = require("./routes/UserRoutes");
+const DashboardRoutes = require("./routes/Dashboard");
+const TransactionRoutes = require("./routes/TransactionRoutes");
+const PaymentRoutes = require("./routes/PaymentRoutes");
+const AIInsightsRoutes = require("./routes/InsightRoutes");
+
+dotenv.config();
 
 const app = express();
 
-// Middleware
-// app.use(cors());
+// ✅ Middleware
 app.use(express.json());
-const allowedOrigins = ["http://localhost:5173"]; // add production domain(s) later
 
-app.use(cors({
-  origin: allowedOrigins,
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+// ✅ Allowed Origins
+const allowedOrigins = [
+  "http://localhost:5173",  // local dev
+  "https://your-frontend-domain.com", // production frontend
+];
 
-// Import routes
-const AIInsightsRoutes = require("./routes/InsightRoutes");
-const { default: mongoose } = require("mongoose");
+// ✅ Fix: Proper dynamic CORS configuration
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`❌ Blocked by CORS: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
-// Mount routes
+// ✅ Handle Preflight Requests
+app.options("*", cors());
+
+// ✅ MongoDB Connection
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Connected to MongoDB"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
+
+// ✅ Mount Routes
 app.use("/ai/insights", AIInsightsRoutes);
-app.use("/api/User", UserRoutes)
-app.use("/api/dashboard", DashboardRoutes)
-app.use("/api/transactions", TransactionRoutes)
-app.use("/api/payments", PaymentRoutes)
-// Root endpoint
+app.use("/api/User", UserRoutes);
+app.use("/api/dashboard", DashboardRoutes);
+app.use("/api/transactions", TransactionRoutes);
+app.use("/api/payments", PaymentRoutes);
+
+// ✅ Root endpoint
 app.get("/", (req, res) => {
   res.send("🚀 Banking API is running...");
 });
 
-const PORT = process.env.PORT;
-
-mongoose.connect(process.env.MONGO_URI, {
-  // useNewUrlParser: true,
-  // useUnifiedTopology: true,
-}).then(() => {
-  console.log("Connected to MongoDB");
-}).catch((err) => {
-  console.log("MongoDB connection error:", err)
-})
+// ✅ Start Server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
