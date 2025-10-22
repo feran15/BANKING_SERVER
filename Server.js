@@ -20,7 +20,7 @@ app.use(express.json());
 // ✅ Allowed Origins
 const allowedOrigins = [
   "http://localhost:5173",  // local dev
-  "https://your-frontend-domain.com", // production frontend
+  "https://bankingserver-production.up.railway.app/", // production frontend
 ];
 
 // ✅ Fix: Proper dynamic CORS configuration
