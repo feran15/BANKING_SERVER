@@ -10,6 +10,7 @@ const PaymentRoutes = require("./routes/PaymentRoutes.js");
 const AIInsightsRoutes = require("./routes/InsightRoutes.js");
 
 
+
 dotenv.config();
 
 const app = express();
@@ -56,11 +57,11 @@ mongoose
   .catch((err) => console.error("❌ MongoDB connection error:", err));
 
 // ✅ Mount Routes
-app.use("/ai/insights", AIInsightsRoutes);
 app.use("/api/User", UserRoutes);
 app.use("/api/dashboard", DashboardRoutes);
 app.use("/api/transactions", TransactionRoutes);
 app.use("/api/payments", PaymentRoutes);
+app.use("/ai/insights", AIInsightsRoutes);
 
 // ✅ Root endpoint
 app.get("/", (req, res) => {
