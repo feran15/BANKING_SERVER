@@ -1,5 +1,5 @@
 // controllers/authController.js
-const User = require('../model/UserModel');
+const User = require('../model/Usermodel');
 const authService = require('../Services/authService');
 const AppError = require('../utils/AppError');
 
@@ -57,9 +57,9 @@ class AuthController {
         email,
         password: hashedPassword,
         accountNumber,
+        generatedAccountNumber: accountNumber,
         isEmailVerified: false,
         createdAt: new Date(),
-        generatedAccountNumber: accountNumber,
       });
 
       const savedUser = await newUser.save();
@@ -74,6 +74,7 @@ class AuthController {
         success: true,
         message: 'User registered successfully',
         token,
+        accountNumber,
         user: authService.sanitizeUser(savedUser),
       });
     } catch (error) {
