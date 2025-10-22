@@ -19,27 +19,31 @@ app.use(express.json());
 
 // ✅ Allowed Origins
 const allowedOrigins = [
-  "http://localhost:5173",  // local dev
-  "https://bankingserver-production.up.railway.app/", // production frontend
+  "http://localhost:5173",            // ✅ local dev
+  "https://bankingserver-production.up.railway.app", // ✅ backend itself
+  "https://your-frontend-domain.com", // ✅ (add your Vercel/Netlify link later)
 ];
 
-// ✅ Fix: Proper dynamic CORS configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like Postman)
+    origin: function (origin, callback) {
+      // Allow requests with no origin (e.g. Postman, server-to-server)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.warn(`❌ Blocked by CORS: ${origin}`);
+        console.warn("❌ CORS blocked request from:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
+
+// ✅ Handle preflight requests globally
+app.options("*", cors());
+
 
 // ✅ Handle Preflight Requests
 app.options("*", cors());
