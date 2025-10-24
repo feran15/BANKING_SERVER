@@ -1,10 +1,11 @@
+// routes/Dashboard.js
 const express = require("express");
 const router = express.Router();
-const User = require("../model/Usermodel"); // adjust path if needed
-const jwt = require("jsonwebtoken");
+const User = require("../model/Usermodel");
+const auth = require("../middleware/auth"); // import middleware
 
 // Dashboard endpoint
-router.get("/body",  async (req, res) => {
+router.get("/body", auth, async (req, res) => {
   try {
     // Find the current user in MongoDB
     const user = await User.findById(req.user.id).select("-password");
@@ -13,7 +14,7 @@ router.get("/body",  async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Example of dynamic account + transactions
+    // Example accounts & transactions
     const accounts = [
       {
         type: "Main",
@@ -33,7 +34,7 @@ router.get("/body",  async (req, res) => {
         name: `${user.firstName} ${user.lastName}`,
         email: user.email,
       },
-      accounts,
+      accountNumber: user.accountNumber,  
       transactions,
     });
   } catch (err) {

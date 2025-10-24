@@ -98,6 +98,49 @@ class AuthController {
     }
   }
 
+  // Set Transaction PIN
+static async setTransactionPin(req, res) {
+  try {
+    const { pin } = req.body; // use req.body since sanitizedBody might not exist for this route
+
+    if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        message: "PIN must be exactly 4 digits",
+      });
+    }
+
+    // Hash the PIN before storing
+    const hashedPin = await authService.hashPassword(pin);
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { transactionPin: hashedPin },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Transaction PIN set successfully",
+    });
+  } catch (error) {
+    console.error("Error setting transaction PIN:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error while setting PIN",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+}
+
+
   /**
    * Log a user in
    */

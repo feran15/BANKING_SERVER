@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const UserRoutes = require("./routes/UserRoutes.js");
 const DashboardRoutes = require("./routes/Dashboard.js");
 const TransactionRoutes = require("./routes/TransactionRoutes.js");
-const PaymentRoutes = require("./routes/PaymentRoutes.js");
+// const PaymentRoutes = require("./routes/PaymentModalRoutes.js");
 const AIInsightsRoutes = require("./routes/InsightRoutes.js");
 
 
@@ -60,7 +60,7 @@ mongoose
 app.use("/api/User", UserRoutes);
 app.use("/api/dashboard", DashboardRoutes);
 app.use("/api/transactions", TransactionRoutes);
-app.use("/api/payments", PaymentRoutes);
+// app.use("/api/payments", PaymentRoutes);
 app.use("/ai/insights", AIInsightsRoutes);
 
 // ✅ Root endpoint
