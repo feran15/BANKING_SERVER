@@ -1,191 +1,139 @@
 const express = require("express");
-const axios = require("axios");
-
 const router = express.Router();
+const Transaction = require("../model/Transaction"); // assuming you have a Transaction model
+const User = require("../model/Usermodel"); // if you want to update balances
 
-// Input validation middleware
-const validatePaymentVerification = (req, res, next) => {
-  const { reference } = req.body;
-  
-  if (!reference) {
+// 🔒 Validate transaction input
+const validateTransaction = (req, res, next) => {
+  const { senderId, receiverId, amount } = req.body;
+
+  if (!senderId || !receiverId || !amount) {
     return res.status(400).json({
       success: false,
-      message: "Payment reference is required"
+      message: "Sender, receiver, and amount are required",
     });
   }
-  // Get all Transaction
-  
-  
-  // Basic reference format validation (Paystack references are typically alphanumeric)
-  if (!/^[a-zA-Z0-9_-]+$/.test(reference)) {
+
+  if (isNaN(amount) || amount <= 0) {
     return res.status(400).json({
       success: false,
-      message: "Invalid reference format"
+      message: "Invalid transaction amount",
     });
   }
-  
+
   next();
 };
-router.get("/payment", async(req, res)=>{
-   res.json({ success: true, message: "Payment route working" });
-})
-// Verify payment route
-router.post("/payment/verify", validatePaymentVerification, async (req, res) => {
-  const { reference } = req.body;
 
-  // Check if Paystack secret key is configured
-  if (!process.env.PAYSTACK_SECRET_KEY) {
-    console.error("PAYSTACK_SECRET_KEY environment variable not set");
-    return res.status(500).json({
-      success: false,
-      message: "Payment service configuration error"
-    });
-  }
-
+// ✅ Get all transactions
+router.get("/transactions", async (req, res) => {
   try {
-    const response = await axios.get(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000 // 10 second timeout
-      }
-    );
-
-    const { data: paystackData } = response.data;
-
-    // More comprehensive status checking
-    if (response.data.status === true && paystackData.status === "success") {
-      // Additional validation: check if payment was actually completed
-      if (paystackData.gateway_response === "Successful") {
-        return res.json({
-          success: true,
-          message: "Payment verified successfully",
-          data: {
-            reference: paystackData.reference,
-            amount: paystackData.amount / 100, // Convert from kobo to naira
-            currency: paystackData.currency,
-            customer: {
-              email: paystackData.customer.email,
-              customer_code: paystackData.customer.customer_code
-            },
-            paid_at: paystackData.paid_at,
-            channel: paystackData.channel,
-            gateway_response: paystackData.gateway_response
-          }
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: `Payment not successful: ${paystackData.gateway_response}`,
-          data: {
-            reference: paystackData.reference,
-            status: paystackData.status,
-            gateway_response: paystackData.gateway_response
-          }
-        });
-      }
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "Payment verification failed",
-        data: {
-          reference: paystackData?.reference || reference,
-          status: paystackData?.status || "unknown",
-          message: response.data.message || "Verification unsuccessful"
-        }
-      });
-    }
-
-  } catch (error) {
-    console.error("Payment verification error:", {
-      reference,
-      error: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-
-    // Handle different types of errors
-    if (error.response) {
-      // Paystack API returned an error response
-      const statusCode = error.response.status;
-      const errorMessage = error.response.data?.message || "Payment verification failed";
-      
-      if (statusCode === 404) {
-        return res.status(404).json({
-          success: false,
-          message: "Transaction not found",
-          reference
-        });
-      } else if (statusCode === 401) {
-        return res.status(500).json({
-          success: false,
-          message: "Payment service authentication error"
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: errorMessage,
-          reference
-        });
-      }
-    } else if (error.code === 'ECONNABORTED') {
-      // Timeout error
-      return res.status(408).json({
-        success: false,
-        message: "Payment verification request timed out"
-      });
-    } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-      // Network error
-      return res.status(503).json({
-        success: false,
-        message: "Payment service temporarily unavailable"
-      });
-    } else {
-      // Generic error
-      return res.status(500).json({
-        success: false,
-        message: "Internal server error during payment verification"
-      });
-    }
+    const transactions = await Transaction.find().sort({ createdAt: -1 });
+    res.json({ success: true, total: transactions.length, data: transactions });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch transactions" });
   }
 });
 
-// Optional: Route to get transaction details (for admin purposes)
-router.get("/payment/transaction/:reference", async (req, res) => {
-  const { reference } = req.params;
-  
-  if (!reference) {
-    return res.status(400).json({
-      success: false,
-      message: "Transaction reference is required"
-    });
-  }
+// ✅ Create a new transaction (no Paystack, just local transfer)
+router.post("/transactions", validateTransaction, async (req, res) => {
+  const { senderId, receiverId, amount} = req.body;
 
   try {
-    const response = await axios.get(
-      `https://api.paystack.co/transaction/verify/${reference}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        timeout: 10000
-      }
-    );
+    const sender = await User.findById(senderId);
+    const receiver = await User.findById(receiverId);
 
-    return res.json({
-      success: true,
-      data: response.data.data
+    if (!sender || !receiver) {
+      return res.status(404).json({
+        success: false,
+        message: "Sender or receiver not found",
+      });
+    }
+
+    if (sender.balance < amount) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient balance",
+      });
+    }
+
+    // 💸 Deduct and add balances
+    sender.balance -= amount;
+    receiver.balance += amount;
+
+    // 💾 Save both users
+    await sender.save();
+    await receiver.save();
+
+    // 🧾 Save transaction record
+    const transaction = new Transaction({
+      sender: sender._id,
+      receiver: receiver._id,
+      amount,
+      description: description || "Transfer",
+      status: "completed",
     });
 
-  } catch (error) {
-    console.error("Transaction fetch error:", error.message);
-    return res.status(500).json({
+    await transaction.save();
+
+    res.json({
+      success: true,
+      message: "Transaction completed successfully",
+      data: transaction,
+    });
+  } catch (err) {
+    console.error("Transaction error:", err);
+    res.status(500).json({
       success: false,
-      message: "Failed to fetch transaction details"
+      message: "Internal server error during transaction",
+    });
+  }
+});
+
+// ✅ Get single transaction by ID
+router.get("/transactions/:id", async (req, res) => {
+  try {
+    const transaction = await Transaction.findById(req.params.id);
+
+    if (!transaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    res.json({ success: true, data: transaction });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching transaction" });
+  }
+});
+
+// Verify recipient by account number
+router.get("/users/verify/:accountNumber", async (req, res) => {
+  const { accountNumber } = req.params;
+
+  try {
+    const user = await User.findOne({ accountNumber });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Recipient not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        name: user.fullName,
+        accountNumber: user.accountNumber,
+        userId: user._id,
+      },
+    });
+  } catch (error) {
+    console.error("Account lookup error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
     });
   }
 });
