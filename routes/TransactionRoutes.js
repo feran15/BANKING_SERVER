@@ -5,12 +5,12 @@ const User = require("../model/Usermodel"); // if you want to update balances
 
 // 🔒 Validate transaction input
 const validateTransaction = (req, res, next) => {
-  const { senderId, receiverId, amount } = req.body;
+  const { accountNumber, amount } = req.body;
 
-  if (!senderId || !receiverId || !amount) {
+  if (!accountNumber || !amount) {
     return res.status(400).json({
       success: false,
-      message: "Sender, receiver, and amount are required",
+      message: "Account Number and amount are required",
     });
   }
 
@@ -35,17 +35,20 @@ router.get("/transactions", async (req, res) => {
 });
 
 // ✅ Create a new transaction (no Paystack, just local transfer)
-router.post("/transactions", validateTransaction, async (req, res) => {
-  const { senderId, receiverId, amount} = req.body;
+router.post("/new-transaction", validateTransaction, async (req, res) => {
+  const { accountNumber, amount, senderId } = req.body;
 
   try {
+    // Find sender by ID
     const sender = await User.findById(senderId);
-    const receiver = await User.findById(receiverId);
 
-    if (!sender || !receiver) {
+    // Find receiver by account number
+    const receiver = await User.findOne({ accountNumber });
+
+    if (!accountNumber || !amount) {
       return res.status(404).json({
         success: false,
-        message: "Sender or receiver not found",
+        message: "Receiver not found",
       });
     }
 
@@ -69,7 +72,7 @@ router.post("/transactions", validateTransaction, async (req, res) => {
       sender: sender._id,
       receiver: receiver._id,
       amount,
-      description: description || "Transfer",
+      description: "Transfer",
       status: "completed",
     });
 
@@ -88,6 +91,7 @@ router.post("/transactions", validateTransaction, async (req, res) => {
     });
   }
 });
+
 
 // ✅ Get single transaction by ID
 router.get("/transactions/:id", async (req, res) => {
