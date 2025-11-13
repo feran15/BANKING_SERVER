@@ -39,31 +39,41 @@ router.post("/new-transaction", validateTransaction, async (req, res) => {
   const { accountNumber, amount, senderId } = req.body;
 
   try {
-    // Find sender by ID
+    console.log("Incoming transaction request:", { senderId, accountNumber, amount });
+
+    // 🧩 Check sender
     const sender = await User.findById(senderId);
+    if (!sender) {
+      console.log("❌ Sender not found for ID:", senderId);
+      return res.status(404).json({
+        success: false,
+        message: "Sender not found",
+      });
+    }
 
-    // Find receiver by account number
+    // 🧩 Check receiver
     const receiver = await User.findOne({ accountNumber });
-
-    if (!accountNumber || !amount) {
+    if (!receiver) {
+      console.log("❌ Receiver not found for account number:", accountNumber);
       return res.status(404).json({
         success: false,
         message: "Receiver not found",
       });
     }
 
+    // 💰 Check sender balance
     if (sender.balance < amount) {
+      console.log("⚠️ Insufficient balance. Sender balance:", sender.balance);
       return res.status(400).json({
         success: false,
         message: "Insufficient balance",
       });
     }
 
-    // 💸 Deduct and add balances
+    // 💸 Update balances
     sender.balance -= amount;
     receiver.balance += amount;
 
-    // 💾 Save both users
     await sender.save();
     await receiver.save();
 
@@ -78,6 +88,8 @@ router.post("/new-transaction", validateTransaction, async (req, res) => {
 
     await transaction.save();
 
+    console.log("✅ Transaction successful:", transaction);
+
     res.json({
       success: true,
       message: "Transaction completed successfully",
@@ -88,28 +100,11 @@ router.post("/new-transaction", validateTransaction, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Internal server error during transaction",
+      error: err.message,
     });
   }
 });
 
-
-// ✅ Get single transaction by ID
-router.get("/transactions/:id", async (req, res) => {
-  try {
-    const transaction = await Transaction.findById(req.params.id);
-
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: "Transaction not found",
-      });
-    }
-
-    res.json({ success: true, data: transaction });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching transaction" });
-  }
-});
 
 // Verify recipient by account number
 router.get("/users/verify/:accountNumber", async (req, res) => {

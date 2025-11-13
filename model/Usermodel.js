@@ -30,7 +30,7 @@ const UserSchema = new mongoose.Schema({
   },
   transactionPin: {
   type: String,
-  default: null
+  default: null 
 }
 });
 
