@@ -46,6 +46,7 @@ app.use(
 // ✅ Handle preflight requests (OPTIONS)
 app.options("*", cors());
 
+
 // ✅ Test route to confirm CORS working
 app.get("/test-cors", (req, res) => {
   res.json({ message: "CORS headers working ✅" });

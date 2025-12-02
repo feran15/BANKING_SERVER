@@ -1,7 +1,6 @@
-// middleware/auth.js 
-const jwt = require ("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 
- function verifyToken(req, res, next) {
+function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -12,10 +11,18 @@ const jwt = require ("jsonwebtoken");
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // 👈 includes user id, email, etc
+
+    // Make sure the token includes a user ID
+    if (!decoded.id) {
+      return res.status(401).json({ message: "Invalid token: no user ID found" });
+    }
+
+    req.user = decoded; // { id, email, iat, exp }
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+    console.error("JWT verification error:", err);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 }
+
 module.exports = verifyToken;
