@@ -1,140 +1,78 @@
 const express = require("express");
 const router = express.Router();
-const Transaction = require("../model/Transaction"); // assuming you have a Transaction model
-const User = require("../model/Usermodel"); // if you want to update balances
+const bcrypt = require("bcrypt");
+const Transaction = require("../model/Transaction");
+const User = require("../model/Usermodel");
+const { authenticateToken } = require("../middleware/authMiddleware");
 
-// 🔒 Validate transaction input
+// Validate transaction input
 const validateTransaction = (req, res, next) => {
-  const { accountNumber, amount, TransactionPin } = req.body;
-
-  if (!accountNumber || !amount || !TransactionPin) {
-    return res.status(400).json({
-      success: false,
-      message: "please fill in all required fields",
-    });
-  }
-
-  if (isNaN(amount) || amount <= 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid transaction amount",
-    });
-  }
-
-  next();
+const { receiverId, amount, transactionPin } = req.body;
+if (!receiverId || !amount || !transactionPin) {
+return res.status(400).json({ success: false, message: "Please fill in all required fields" });
+}
+if (isNaN(amount) || amount <= 0) {
+return res.status(400).json({ success: false, message: "Invalid transaction amount" });
+}
+if (transactionPin.length !== 4) {
+return res.status(400).json({ success: false, message: "Transaction PIN must be 4 digits" });
+}
+next();
 };
 
-// ✅ Get all transactions
-router.get("/transactions", async (req, res) => {
-  try {
-    const transactions = await Transaction.find().sort({ createdAt: -1 });
-    res.json({ success: true, total: transactions.length, data: transactions });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch transactions" });
-  }
+// Get all transactions (protected)
+router.get("/", authenticateToken, async (req, res) => {
+try {
+const transactions = await Transaction.find().sort({ createdAt: -1 });
+res.json({ success: true, total: transactions.length, data: transactions });
+} catch (err) {
+console.error("Fetch transactions error:", err);
+res.status(500).json({ success: false, message: "Failed to fetch transactions" });
+}
 });
 
-// ✅ Create a new transaction (no Paystack, just local transfer)
-router.post("/new-transaction", validateTransaction, async (req, res) => {
-  const { accountNumber, amount, TransactionPin } = req.body;
+// Create a new transaction (protected)
+router.post("/new", authenticateToken, validateTransaction, async (req, res) => {
+const { receiverId, amount, transactionPin } = req.body;
 
-  try {
-    console.log("Incoming transaction request:", {TransactionPin, accountNumber, amount });
+try {
+// Find sender
+const sender = await User.findById(req.user.id);
+if (!sender) return res.status(404).json({ success: false, message: "Sender not found" });
 
-    // 🧩 Check sender
-    const sender = await User.findById(TransactionPin);
-    if (!sender) {
-      console.log("❌ Sender not found for ID:", senderId);
-      return res.status(404).json({
-        success: false,
-        message: "Sender not found",
-      });
-    }
+// Verify PIN
+const isPinValid = await bcrypt.compare(transactionPin, sender.transactionPin);
+if (!isPinValid) return res.status(400).json({ success: false, message: "Invalid transaction PIN" });
 
-    // 🧩 Check receiver
-    const receiver = await User.findOne({ accountNumber });
-    if (!receiver) {
-      console.log("❌ Receiver not found for account number:", accountNumber);
-      return res.status(404).json({
-        success: false,
-        message: "Receiver not found",
-      });
-    }
+// Find receiver
+const receiver = await User.findById(receiverId);
+if (!receiver) return res.status(404).json({ success: false, message: "Receiver not found" });
 
-    // 💰 Check sender balance
-    if (sender.balance < amount) {
-      console.log("⚠️ Insufficient balance. Sender balance:", sender.balance);
-      return res.status(400).json({
-        success: false,
-        message: "Insufficient balance",
-      });
-    }
+// Check balance
+if (sender.balance < amount) return res.status(400).json({ success: false, message: "Insufficient balance" });
 
-    // 💸 Update balances
-    sender.balance -= amount;
-    receiver.balance += amount;
+// Update balances
+sender.balance -= amount;
+receiver.balance += amount;
+await sender.save();
+await receiver.save();
 
-    await sender.save();
-    await receiver.save();
-
-    // 🧾 Save transaction record
-    const transaction = new Transaction({
-      sender: sender._id,
-      receiver: receiver._id,
-      amount,
-      description: "Transfer",
-      status: "completed",
-    });
-
-    await transaction.save();
-
-    console.log("✅ Transaction successful:", transaction);
-
-    res.json({
-      success: true,
-      message: "Transaction completed successfully",
-      data: transaction,
-    });
-  } catch (err) {
-    console.error("Transaction error:", err);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error during transaction",
-      error: err.message,
-    });
-  }
+// Save transaction
+const transaction = new Transaction({
+  sender: sender._id,
+  receiver: receiver._id,
+  amount,
+  description: "Transfer",
+  status: "completed",
 });
+await transaction.save();
 
+res.json({ success: true, message: "Transaction completed successfully", data: transaction });
 
-// Verify recipient by account number
-router.get("/users/verify/:accountNumber", async (req, res) => {
-  const { accountNumber } = req.params;
-
-  try {
-    const user = await User.findOne({ accountNumber });
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "Recipient not found",
-      });
-    }
-
-    res.json({
-      success: true,
-      data: {
-        name: user.fullName,
-        accountNumber: user.accountNumber,
-        userId: user._id,
-      },
-    });
-  } catch (error) {
-    console.error("Account lookup error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
+} catch (err) {
+console.error("Transaction error:", err);
+res.status(500).json({ success: false, message: "Internal server error", error: err.message });
+}
 });
 
 module.exports = router;
