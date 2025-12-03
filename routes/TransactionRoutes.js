@@ -5,12 +5,12 @@ const User = require("../model/Usermodel"); // if you want to update balances
 
 // 🔒 Validate transaction input
 const validateTransaction = (req, res, next) => {
-  const { accountNumber, amount } = req.body;
+  const { accountNumber, amount, TransactionPin } = req.body;
 
-  if (!accountNumber || !amount) {
+  if (!accountNumber || !amount || !TransactionPin) {
     return res.status(400).json({
       success: false,
-      message: "Account Number and amount are required",
+      message: "please fill in all required fields",
     });
   }
 
@@ -36,13 +36,13 @@ router.get("/transactions", async (req, res) => {
 
 // ✅ Create a new transaction (no Paystack, just local transfer)
 router.post("/new-transaction", validateTransaction, async (req, res) => {
-  const { accountNumber, amount, senderId } = req.body;
+  const { accountNumber, amount, TransactionPin } = req.body;
 
   try {
-    console.log("Incoming transaction request:", { senderId, accountNumber, amount });
+    console.log("Incoming transaction request:", {TransactionPin, accountNumber, amount });
 
     // 🧩 Check sender
-    const sender = await User.findById(senderId);
+    const sender = await User.findById(TransactionPin);
     if (!sender) {
       console.log("❌ Sender not found for ID:", senderId);
       return res.status(404).json({

@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 
 function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
-
+// console.log("AUTH HEADER RECEIVED BY BACKEND:", authHeader);
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Access denied. No token provided." });
   }
