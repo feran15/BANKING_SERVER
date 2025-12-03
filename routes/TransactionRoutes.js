@@ -5,14 +5,11 @@ const Transaction = require("../model/Transaction");
 const User = require("../model/Usermodel");
 const { authenticateToken } = require("../middleware/authMiddleware");
 
-// Validate transaction input
+// Validate transaction input (only receiverId and transactionPin now)
 const validateTransaction = (req, res, next) => {
-const { receiverId, amount, transactionPin } = req.body;
-if (!receiverId || !amount || !transactionPin) {
+const { receiverId, transactionPin } = req.body;
+if (!receiverId || !transactionPin) {
 return res.status(400).json({ success: false, message: "Please fill in all required fields" });
-}
-if (isNaN(amount) || amount <= 0) {
-return res.status(400).json({ success: false, message: "Invalid transaction amount" });
 }
 if (transactionPin.length !== 4) {
 return res.status(400).json({ success: false, message: "Transaction PIN must be 4 digits" });
@@ -20,27 +17,20 @@ return res.status(400).json({ success: false, message: "Transaction PIN must be 
 next();
 };
 
-// Get all transactions (protected)
-router.get("/", authenticateToken, async (req, res) => {
-try {
-const transactions = await Transaction.find().sort({ createdAt: -1 });
-res.json({ success: true, total: transactions.length, data: transactions });
-} catch (err) {
-console.error("Fetch transactions error:", err);
-res.status(500).json({ success: false, message: "Failed to fetch transactions" });
-}
-});
-
-// Create a new transaction (protected)
+// Create a new transaction with fixed amount
 router.post("/new", authenticateToken, validateTransaction, async (req, res) => {
-const { receiverId, amount, transactionPin } = req.body;
+const { receiverId, transactionPin } = req.body;
 
 try {
+// 🔹 Fixed transaction amount (e.g., 500 units)
+const fixedAmount = 500;
+
+
 // Find sender
 const sender = await User.findById(req.user.id);
 if (!sender) return res.status(404).json({ success: false, message: "Sender not found" });
 
-// Verify PIN
+// Verify transaction PIN
 const isPinValid = await bcrypt.compare(transactionPin, sender.transactionPin);
 if (!isPinValid) return res.status(400).json({ success: false, message: "Invalid transaction PIN" });
 
@@ -49,11 +39,11 @@ const receiver = await User.findById(receiverId);
 if (!receiver) return res.status(404).json({ success: false, message: "Receiver not found" });
 
 // Check balance
-if (sender.balance < amount) return res.status(400).json({ success: false, message: "Insufficient balance" });
+if (sender.balance < fixedAmount) return res.status(400).json({ success: false, message: "Insufficient balance" });
 
 // Update balances
-sender.balance -= amount;
-receiver.balance += amount;
+sender.balance -= fixedAmount;
+receiver.balance += fixedAmount;
 await sender.save();
 await receiver.save();
 
@@ -61,13 +51,29 @@ await receiver.save();
 const transaction = new Transaction({
   sender: sender._id,
   receiver: receiver._id,
-  amount,
-  description: "Transfer",
+  amount: fixedAmount,
+  description: "Fixed transfer",
   status: "completed",
 });
 await transaction.save();
 
-res.json({ success: true, message: "Transaction completed successfully", data: transaction });
+// Generate receipt
+const receipt = {
+  transactionId: transaction._id,
+  date: transaction.createdAt,
+  sender: { name: sender.fullName, accountNumber: sender.accountNumber },
+  receiver: { name: receiver.fullName, accountNumber: receiver.accountNumber },
+  amount: fixedAmount,
+  description: transaction.description,
+  status: transaction.status,
+};
+
+res.json({
+  success: true,
+  message: "Transaction completed successfully",
+  data: transaction,
+  receipt,
+});
 
 } catch (err) {
 console.error("Transaction error:", err);
