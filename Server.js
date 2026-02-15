@@ -63,6 +63,7 @@ mongoose
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
+console.log("MONGO_URI:", process.env.MONGO_URI);
 
 
 // ✅ Mount Routes
