@@ -44,7 +44,7 @@ app.use(
 );
 
 // ✅ Handle preflight requests (OPTIONS)
-app.options("*", cors());
+// app.options("/*", cors());
 
 
 // ✅ Test route to confirm CORS working

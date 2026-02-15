@@ -22,7 +22,7 @@ router.post("/newbank", async (req, res, next) => {
     const newAccount = new Account ({
         fullname,
         email,
-        bvn:hashedbvn,
+        // bvn:hashedbvn,
         password:hashedpassword
     })
 })
