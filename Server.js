@@ -22,7 +22,7 @@ app.use(express.json());
 // ✅ Define allowed origins
 const allowedOrigins = [
   "http://localhost:5173",                 // your dev frontend
-  "https://feran159814-wy429h0s.leapcell.dev", // backend itself
+  "https://banking-server-akka.onrender.com", // backend itself
   "https://your-frontend-domain.com",      // add deployed frontend later
 ];
 
