@@ -68,7 +68,7 @@ console.log("MONGO_URI:", process.env.MONGO_URI);
 
 // ✅ Mount Routes
 app.use("/User", UserRoutes);
-app.use("dashboard", DashboardRoutes);
+app.use("/dashboard", DashboardRoutes);
 app.use("/transactions", TransactionRoutes);
 // app.use("/api/payments", PaymentRoutes);
 // app.use("/ai/insights", AIInsightsRoutes);
