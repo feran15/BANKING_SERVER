@@ -23,7 +23,7 @@ app.use(express.json());
 const allowedOrigins = [
   "http://localhost:5173",                 // your dev frontend
   "https://banking-server-akka.onrender.com", // backend itself
-  "https://react-fintech-phi.vercel.app/",      // add deployed frontend later
+  "https://react-fintech-phi.vercel.app",      // add deployed frontend later
 ];
 
 // ✅ Dynamic origin handler
